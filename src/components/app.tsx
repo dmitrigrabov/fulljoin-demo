@@ -10,15 +10,14 @@ import { SelectSegment } from '@/components/select-segment'
 const App = () => {
   const [selection, setSelection] = useState<Selection>()
 
-  const xAxisData = Array.from(new Set(data.month)).sort()
+  const months = Array.from(new Set(data.month)).sort()
 
   const totals = groupDataByColumn({
     data,
     bucketName: 'bucket',
-    bucketValues: mrrLabels
+    bucketValues: mrrLabels,
+    selection
   })
-
-  const months = Array.from(new Set(data.month)).sort()
 
   const gridColumns: GridColumn[] = [
     { name: 'bucket', title: 'Breakdown', type: 'text' },
@@ -50,7 +49,7 @@ const App = () => {
         selection={selection}
         setSelection={setSelection}
       />
-      <Charts selection={selection} totals={totals} xAxisData={xAxisData} months={months} />
+      <Charts selection={selection} totals={totals} xAxisData={months} months={months} />
       <div className="p-4">
         <Grid data={gridRows} gridColumns={gridColumns} />
       </div>
@@ -64,13 +63,27 @@ type GroupDataByColumnArgs = {
   data: typeof data
   bucketName: keyof typeof data
   bucketValues: string[]
+  selection: Selection | undefined
 }
 
-const groupDataByColumn = ({ data, bucketName, bucketValues }: GroupDataByColumnArgs) => {
+const groupDataByColumn = ({
+  data,
+  bucketName,
+  bucketValues,
+  selection
+}: GroupDataByColumnArgs) => {
   const totals: Record<string, Record<string, number>> = {}
 
   data.month.forEach((month, index) => {
     bucketValues.forEach(bucketValue => {
+      if (selection) {
+        const itemInFilter = data[selection.bucketName as keyof typeof data][index]
+
+        if (!(typeof itemInFilter === 'string' && selection.bucketValues.includes(itemInFilter))) {
+          return
+        }
+      }
+
       if (data[bucketName][index] === bucketValue) {
         setWith(
           totals,
@@ -133,7 +146,7 @@ type ChartsProps = {
 }
 
 const Charts = ({ selection, totals, xAxisData, months }: ChartsProps) => {
-  if (!selection) {
+  if (!selection?.bucketValues?.length) {
     return (
       <div className="p-4">
         <LineChart
@@ -168,7 +181,7 @@ const Charts = ({ selection, totals, xAxisData, months }: ChartsProps) => {
       </div>
 
       <div className="flex-1">
-        {selection ? (
+        {selection?.bucketValues?.length ? (
           <HorizontalBarChart
             yAxisData={selection.bucketValues}
             xAxisDataSeries={getLastMonthMrrSegments({ months, selection })}

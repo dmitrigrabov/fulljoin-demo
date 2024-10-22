@@ -10,6 +10,7 @@ import { Selection } from './types'
 import data from '@/data.json'
 import { Button } from '@/components/ui/button'
 import { X } from 'lucide-react'
+import { MultiSelect } from '@/components/multi-select'
 
 type SelectSegmentProps = {
   bucketValues: string[]
@@ -48,9 +49,23 @@ export const SelectSegment = ({
             ))}
         </SelectContent>
       </Select>
-      <Button variant="ghost" size="icon" onClick={() => setSelection(undefined)}>
-        <X />
-      </Button>
+      {selection && (
+        <Button variant="ghost" size="icon" onClick={() => setSelection(undefined)}>
+          <X />
+        </Button>
+      )}
+      {selection && (
+        <MultiSelect
+          className="w-min"
+          options={Array.from(new Set(data[selection.bucketName as keyof typeof data] as string[]))
+            .sort()
+            .map(value => ({ label: value, value }))}
+          selectedValues={selection.bucketValues}
+          setSelectedValues={items => {
+            setSelection({ ...selection, bucketValues: items })
+          }}
+        />
+      )}
     </div>
   )
 }
