@@ -6,9 +6,6 @@ type HorizontalBarChartProps = {
 }
 
 export const HorizontalBarChart = ({ yAxisData, xAxisDataSeries }: HorizontalBarChartProps) => {
-  console.log('X Axis Data Series', xAxisDataSeries)
-  console.log('Y Axis Data', yAxisData)
-
   const options: EChartsOption = {
     grid: { top: 8, right: 8, bottom: 24, left: 70 },
     xAxis: {
